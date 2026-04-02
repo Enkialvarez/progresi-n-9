@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Biología | CETIS 43</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --verde-oscuro:  #1a3d2b;
+            --verde-medio:   #2d6a4f;
+            --verde-claro:   #52b788;
+            --ambar:         #e9a84c;
+            --ambar-claro:   #fef3c7;
+            --crema:         #fdf8f0;
+            --crema-oscura:  #f0e8d8;
+            --tierra:        #7c4d2b;
+            --texto:         #2c2416;
+            --texto-suave:   #5c4d3a;
+            --blanco:        #ffffff;
+            --sombra:        rgba(44,36,22,0.12);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background-color: var(--crema);
+            color: var(--texto);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ──── HEADER ──── */
+        header {
+            background: linear-gradient(135deg, var(--verde-oscuro) 0%, #0d2818 60%, #1f4428 100%);
+            color: white;
+            padding: 4rem 1.5rem 3.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(82,183,136,0.18) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 20%, rgba(233,168,76,0.12) 0%, transparent 45%);
+        }
+        header::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--verde-claro), var(--ambar), var(--verde-claro));
+        }
+        .header-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 5px 18px;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+        header h1 {
+            font-family: 'Lora', serif;
+            font-size: clamp(1.9rem, 5vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+            position: relative;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+        .header-sub {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.95rem;
+            position: relative;
+        }
+        .dna-icon {
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            display: block;
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+        /* ──── CONTAINER ──── */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2.5rem 1.2rem;
+        }
+
+        /* ──── TARJETAS SECCIÓN ──── */
+        .seccion {
+            background: var(--blanco);
+            border-radius: 14px;
+            padding: 2.2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 20px var(--sombra);
+            border: 1px solid rgba(44,36,22,0.07);
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity .6s ease, transform .6s ease;
+        }
+        .seccion.visible { opacity: 1; transform: translateY(0); }
+
+        .seccion h2 {
+            font-family: 'Lora', serif;
+            color: var(--verde-oscuro);
+            font-size: 1.35rem;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 2px solid var(--crema-oscura);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* ──── TABS ──── */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        .tab-btn {
+            padding: 8px 18px;
+            border: 2px solid var(--crema-oscura);
+            border-radius: 20px;
+            background: transparent;
+            cursor: pointer;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--texto-suave);
+            transition: all .25s;
+        }
+        .tab-btn.activo, .tab-btn:hover {
+            background: var(--verde-oscuro);
+            border-color: var(--verde-oscuro);
+            color: white;
+        }
+        .tab-panel { display: none; animation: fadeIn .35s ease; }
+        .tab-panel.activo { display: block; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+        /* ──── OBJETIVOS ──── */
+        .objetivo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .objetivo-card {
+            background: var(--crema);
+            border-radius: 10px;
+            padding: 1.2rem 1.4rem;
+            border-left: 4px solid var(--verde-claro);
+            font-size: 0.93rem;
+        }
+        .objetivo-card strong { color: var(--verde-oscuro); display: block; margin-bottom: 4px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ──── GLOSARIO ──── */
+        .glosario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .termino {
+            background: var(--crema);
+            padding: 1.1rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            border: 1px solid var(--crema-oscura);
+            transition: transform .2s, box-shadow .2s;
+            cursor: default;
+        }
+        .termino:hover { transform: translateY(-3px); box-shadow: 0 6px 18px var(--sombra); }
+        .termino b { color: var(--verde-oscuro); display: block; margin-bottom: 6px; font-size: 0.92rem; }
+        .termino-tag {
+            display: inline-block;
+            background: var(--ambar-claro);
+            color: var(--tierra);
+            font-size: 0.7rem;
+            border-radius: 8px;
+            padding: 1px 7px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        /* ──── LECTURA ──── */
+        .bloque-info {
+            background: var(--crema);
+            border-left: 5px solid var(--verde-medio);
+            border-radius: 0 10px 10px 0;
+            padding: 1.4rem 1.6rem;
+            margin-bottom: 1.2rem;
+        }
+        .bloque-info p { margin-bottom: 0.7rem; font-size: 0.95rem; }
+        .bloque-info p:last-child { margin-bottom: 0; }
+        .bloque-info strong { color: var(--verde-oscuro); }
+        .proceso-dna {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin: 1.2rem 0;
+            flex-wrap: wrap;
+        }
+        .etapa {
+            background: var(--verde-oscuro);
+            color: white;
+            padding: 0.6rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 6px;
+            text-align: center;
+            min-width: 100px;
+        }
+        .flecha { color: var(--ambar); font-size: 1.4rem; padding: 0 8px; font-weight: bold; }
+        .etapa.exon { background: var(--verde-medio); }
+        .etapa.intron { background: var(--tierra); }
+        .etapa.mrna { background: var(--ambar); color: var(--verde-oscuro); }
+        .etapa.prot { background: var(--verde-oscuro); }
+
+        .enlace-ext {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--verde-medio);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1.5px solid var(--verde-claro);
+            margin: 3px;
+            transition: all .2s;
+        }
+        .enlace-ext:hover { background: var(--verde-oscuro); color: white; border-color: var(--verde-oscuro); }
+
+        /* ──── VIDEO ──── */
+        .video-card {
+            background: linear-gradient(135deg, var(--verde-oscuro), #0d2818);
+            border-radius: 14px;
+            padding: 2.5rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .video-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 60% 40%, rgba(82,183,136,0.15), transparent 60%);
+        }
+        .play-icon {
+            width: 72px; height: 72px;
+            background: var(--ambar);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: transform .25s, box-shadow .25s;
+            position: relative;
+        }
+        .play-icon:hover { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(233,168,76,0.2); }
+        .video-card h3 { font-family: 'Lora', serif; font-size: 1.2rem; margin-bottom: 0.5rem; position: relative; }
+        .video-card p { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 1.5rem; position: relative; }
+        .btn-yt {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ff0000;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            position: relative;
+            transition: background .2s, transform .2s;
+        }
+        .btn-yt:hover { background: #cc0000; transform: translateY(-2px); }
+        .video-alt {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.12);
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.5);
+            position: relative;
+        }
+
+        /* ──── ACTIVIDADES ──── */
+        .actividades-list { display: grid; gap: 1rem; }
+        .actividad {
+            border: 1.5px solid var(--crema-oscura);
+            border-radius: 10px;
+            padding: 1.3rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            transition: border-color .2s, box-shadow .2s;
+            cursor: pointer;
+        }
+        .actividad:hover { border-color: var(--verde-claro); box-shadow: 0 4px 14px var(--sombra); }
+        .actividad-num {
+            background: var(--verde-oscuro);
+            color: white;
+            border-radius: 8px;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .actividad-body strong { color: var(--verde-oscuro); font-size: 0.97rem; display: block; margin-bottom: 3px; }
+        .actividad-body p { font-size: 0.88rem; color: var(--texto-suave); }
+        .sugerencias {
+            background: var(--ambar-claro);
+            border: 1px solid #f6d78a;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            margin-top: 0.8rem;
+            font-size: 0.88rem;
+        }
+        .sugerencias strong { color: var(--tierra); }
+        .sugerencias ul { margin: 0.4rem 0 0 1.2rem; }
+        .sugerencias li { margin-bottom: 3px; }
+
+        /* ──── EXAMEN ──── */
+        .examen-area {
+            background: linear-gradient(160deg, #1a2d1e 0%, #0d1f13 100%);
+            color: #f0ebe0;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        .examen-area h2 { color: var(--ambar); border-bottom-color: rgba(255,255,255,0.1); }
+        .datos-reg {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        @media(max-width: 560px){ .datos-reg { grid-template-columns: 1fr; } }
+        .input-wrap label { display: block; font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 5px; letter-spacing: 1px; text-transform: uppercase; }
+        input[type="text"] {
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            width: 100%;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.97rem;
+            transition: border-color .2s;
+        }
+        input[type="text"]:focus { outline: none; border-color: var(--verde-claro); }
+        .progreso-examen {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1.8rem;
+            flex-wrap: wrap;
+        }
+        .prog-dot {
+            width: 28px; height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.12);
+            transition: background .3s;
+        }
+        .prog-dot.resp { background: var(--verde-claro); }
+
+        .pregunta-wrap {
+            margin-bottom: 1.8rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .pregunta-wrap p {
+            font-family: 'Lora', serif;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            color: #f5f0e8;
+        }
+        .pregunta-num { color: var(--ambar); font-weight: 700; }
+        .opcion {
+            display: block;
+            margin: 6px 0;
+            cursor: pointer;
+        }
+        .opcion-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(255,255,255,0.1);
+            font-size: 0.93rem;
+            transition: all .2s;
+        }
+        .opcion input { display: none; }
+        .opcion-inner:hover { background: rgba(82,183,136,0.12); border-color: rgba(82,183,136,0.4); }
+        .opcion input:checked + .opcion-inner {
+            background: rgba(82,183,136,0.18);
+            border-color: var(--verde-claro);
+            color: #a7f3d0;
+        }
+        .radio-circle {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .2s;
+        }
+        .opcion input:checked + .opcion-inner .radio-circle {
+            border-color: var(--verde-claro);
+            background: var(--verde-claro);
+        }
+        .radio-circle::after {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: white;
+            display: none;
+        }
+        .opcion input:checked + .opcion-inner .radio-circle::after { display: block; }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--verde-medio), var(--verde-claro));
+            color: white;
+            border: none;
+            padding: 1.1rem;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Source Sans 3', sans-serif;
+            margin-top: 0.5rem;
+            transition: opacity .2s, transform .2s;
+            letter-spacing: 0.5px;
+        }
+        .btn-submit:hover { opacity: 0.92; transform: translateY(-2px); }
+        .btn-submit:active { transform: scale(0.98); }
+
+        /* ──── RESULTADO ──── */
+        .resultado {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            animation: fadeIn .5s ease;
+        }
+        .nota-grande {
+            font-family: 'Lora', serif;
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin: 1rem 0;
+        }
+        .nota-barra {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            margin: 1rem auto;
+            max-width: 280px;
+            overflow: hidden;
+        }
+        .nota-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--verde-claro), var(--ambar));
+            transition: width 1s ease;
+        }
+
+        /* ──── FOOTER ──── */
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--texto-suave);
+            font-size: 0.83rem;
+            border-top: 1px solid var(--crema-oscura);
+        }
+
+        /* ──── SCROLL REVEAL ──── */
+        @media (prefers-reduced-motion: reduce) {
+            .seccion { opacity: 1; transform: none; }
+        }
+
+        /* ──── CARIOTIPO VISUAL ──── */
+        .karyo-wrap {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--crema);
+            border-radius: 8px;
+        }
+        .par-crom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .crom {
+            width: 7px;
+            border-radius: 3px;
+            background: var(--verde-medio);
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .crom:hover { background: var(--ambar); }
+        .par-num { font-size: 0.55rem; color: var(--texto-suave); margin-top: 2px; }
+        .crom.anomalia { background: #e53e3e; }
+        .karyo-legend {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.82rem;
+            margin-top: 0.5rem;
+        }
+        .legend-dot {
+            width: 12px; height: 12px;
+            border-radius: 2px;
+            display: inline-block;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <span class="dna-icon">🧬</span>
+    <div class="header-badge">DGETI · CETIS 43 · Enrique T.</div>
+    <h1>Genómica y Evolución</h1>
+    <p class="header-sub">Módulo de Biología Molecular · Ciclo 2025–2026</p>
+</header>
+
+<div class="container">
+
+    <!-- OBJETIVOS -->
+    <div class="seccion">
+        <h2>📍 Objetivos de la Progresión</h2>
+        <p style="font-size:.93rem;color:var(--texto-suave);margin-bottom:1.2rem;">
+            <strong>Propósito general:</strong> Comprender la organización del material genético y su transmisión hereditaria como base de la variabilidad biológica y los procesos evolutivos. Al finalizar esta progresión serás capaz de integrar conceptos de genética clásica con herramientas de la genómica moderna.
+        </p>
+        <div class="objetivo-grid">
+            <div class="objetivo-card">
+                <strong>Objetivo 1 · Estructura Génica</strong>
+                Analizar la organización fragmentada de los genes: distinción entre Intrones (no codificantes) y Exones (codificantes), así como el rol del Splicing Alternativo en la diversidad proteica.
+            </div>
+            <div class="objetivo-card">
+                <strong>Objetivo 2 · Citogenética</strong>
+                Interpretar cariotipos humanos a partir del Bandeo Giemsa, identificar la numeración de pares cromosómicos e reconocer anomalías numéricas como la Trisomía 21 (Síndrome de Down).
+            </div>
+            <div class="objetivo-card">
+                <strong>Objetivo 3 · Herencia Mendeliana</strong>
+                Aplicar la teoría cromosómica de la herencia mediante Cuadros de Punnett para predecir fenotipos y genotipos en generaciones F1 y F2, usando los caracteres estudiados por Mendel.
+            </div>
+            <div class="objetivo-card">
+                <strong>Objetivo 4 · Genómica y Ética</strong>
+                Debatir las implicaciones éticas de la medicina de precisión, el uso de bases de datos genómicas masivas (programa "All of Us") y la paleogenómica como herramienta evolutiva.
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL CON TABS -->
+    <div class="seccion">
+        <h2>📚 Desarrollo de la Progresión</h2>
+        <div class="tabs">
+            <button class="tab-btn activo" onclick="cambiarTab(this,'tab1')">Intrones y Exones</button>
+            <button class="tab-btn" onclick="cambiarTab(this,'tab2')">Cariotipo y Bandeo G</button>
+            <button class="tab-btn" onclick="cambiarTab(this,'tab3')">Teoría Cromosómica</button>
+            <button class="tab-btn" onclick="cambiarTab(this,'tab4')">Origen de la Vida</button>
+        </div>
+
+        <!-- TAB 1: Intrones / Exones -->
+        <div class="tab-panel activo" id="tab1">
+            <div class="bloque-info">
+                <p>En el genoma humano los genes no son bloques continuos de información: están <strong>divididos en segmentos alternados</strong> llamados exones e intrones. Esta arquitectura fragmentada es característica de los organismos eucariotas y tiene consecuencias profundas sobre la regulación génica.</p>
+                <p><strong>🔹 Exones:</strong> Del inglés <em>expressed regions</em>. Son las secuencias que <em>sí</em> se conservan en el ARN mensajero (ARNm) maduro y contienen las instrucciones para sintetizar proteínas. Un gen humano promedio posee entre 7 y 10 exones.</p>
+                <p><strong>🔸 Intrones:</strong> Secuencias intercaladas que <em>se eliminan</em> durante el procesamiento del ARN. Aunque no codifican proteínas, participan en la regulación de la expresión génica, actúan como "amortiguadores" contra mutaciones y contienen señales para el Splicing.</p>
+            </div>
+            <p style="font-size:.88rem;color:var(--texto-suave);margin-bottom:8px;"><strong>Proceso de maduración del ARNm:</strong></p>
+            <div class="proceso-dna">
+                <div class="etapa">ADN gen</div>
+                <span class="flecha">→</span>
+                <div class="etapa exon">Exón 1</div>
+                <div class="etapa intron" style="opacity:.7;font-size:.74rem;">Intrón</div>
+                <div class="etapa exon">Exón 2</div>
+                <div class="etapa intron" style="opacity:.7;font-size:.74rem;">Intrón</div>
+                <div class="etapa exon">Exón 3</div>
+                <span class="flecha">→ Splicing →</span>
+                <div class="etapa mrna">ARNm maduro</div>
+                <span class="flecha">→</span>
+                <div class="etapa prot">Proteína</div>
+            </div>
+            <div class="bloque-info" style="margin-top:1.2rem;">
+                <p><strong>💡 Splicing Alternativo:</strong> El mismo pre-ARNm puede procesarse de formas distintas según el tejido o la etapa del desarrollo. Por ejemplo, el gen <em>DSCAM</em> en Drosophila puede generar más de 38 000 proteínas distintas a partir de un solo gen gracias a este mecanismo. En humanos, se estima que más del <strong>95 % de los genes multiexónicos sufren splicing alternativo</strong>.</p>
+                <p><strong>⚠ Importancia clínica:</strong> Mutaciones en los sitios de splicing causan enfermedades como la beta-talasemia, ciertos cánceres y la distrofia muscular de Duchenne. Por eso, entender este proceso es clave para la medicina de precisión.</p>
+            </div>
+            <div style="margin-top:1rem;">
+                <a href="https://www.genome.gov/es/genetics-glossary/Exon" target="_blank" class="enlace-ext">🔗 Exón — NHGRI</a>
+                <a href="https://www.genome.gov/es/genetics-glossary/Intron" target="_blank" class="enlace-ext">🔗 Intrón — NHGRI</a>
+                <a href="https://www.ncbi.nlm.nih.gov/gene" target="_blank" class="enlace-ext">🔗 Base de datos NCBI Gene</a>
+            </div>
+        </div>
+
+        <!-- TAB 2: Cariotipo -->
+        <div class="tab-panel" id="tab2">
+            <div class="bloque-info">
+                <p>El <strong>cariotipo</strong> es la representación ordenada del complemento cromosómico de una célula. En humanos contamos con <strong>46 cromosomas (23 pares)</strong>: 22 pares de autosomas y 1 par sexual (XX ó XY).</p>
+                <p><strong>Bandeo Giemsa (Bandeo G):</strong> Técnica citogenética en la que los cromosomas en metafase se tratan con tripsina y se tiñen con el colorante Giemsa. El resultado es un patrón de bandas claras y oscuras único para cada par cromosómico, lo que permite su identificación y la detección de anomalías estructurales o numéricas.</p>
+                <p>Las <strong>bandas G oscuras</strong> corresponden a regiones ricas en A-T (adenina-timina), condensadas y menos activas transcripcionalmente. Las <strong>bandas G claras</strong> son ricas en G-C y contienen mayor densidad de genes activos.</p>
+            </div>
+            <p style="font-size:.88rem;color:var(--texto-suave);margin:1rem 0 4px;"><strong>Representación simplificada del cariotipo humano (haz clic en un par):</strong></p>
+            <div class="karyo-wrap" id="karyoWrap"></div>
+            <div class="karyo-legend">
+                <span><span class="legend-dot" style="background:var(--verde-medio)"></span>Par normal</span>
+                <span><span class="legend-dot" style="background:#e53e3e"></span>Trisomía 21 (Síndrome de Down)</span>
+            </div>
+            <p id="karyoMsg" style="font-size:.85rem;margin-top:.8rem;color:var(--texto-suave);min-height:1.4em;"></p>
+            <div class="bloque-info" style="margin-top:1.2rem;">
+                <p><strong>Trisomía 21 (Síndrome de Down):</strong> Se produce cuando el par 21 tiene <em>tres</em> cromosomas en lugar de dos, generalmente por no-disyunción durante la meiosis. Afecta a aproximadamente 1 de cada 700 nacimientos y es la aneuploidía autosómica más frecuente compatible con la vida.</p>
+                <p>Otras aneuploidías importantes: <strong>Trisomía 18</strong> (Síndrome de Edwards), <strong>Trisomía 13</strong> (Síndrome de Patau), <strong>Síndrome de Turner</strong> (45, X) y <strong>Síndrome de Klinefelter</strong> (47, XXY).</p>
+            </div>
+        </div>
+
+        <!-- TAB 3: Teoría Cromosómica -->
+        <div class="tab-panel" id="tab3">
+            <div class="bloque-info">
+                <p>A principios del siglo XX, <strong>Walter Sutton</strong> (trabajando con saltamontes) y <strong>Theodor Boveri</strong> (con erizos de mar) llegaron de manera independiente a la misma conclusión: <em>los factores hereditarios de Mendel se encuentran en los cromosomas</em>.</p>
+                <p>Sus argumentos clave: (1) los cromosomas se comportan en pares durante la meiosis, igual que los factores mendelianos; (2) la separación cromosómica en la meiosis I corresponde a la segregación de alelos; (3) cada progenitor aporta la mitad del complemento cromosómico, como ocurre con los factores hereditarios.</p>
+            </div>
+            <div class="bloque-info">
+                <p><strong>🧪 Morgan y la ligación génica:</strong> Thomas Hunt Morgan, trabajando con <em>Drosophila melanogaster</em>, demostró que los genes ubicados en el mismo cromosoma se transmiten juntos (ligación) y confirmó experimentalmente la teoría cromosómica. También descubrió el entrecruzamiento (crossing over), que genera recombinación genética.</p>
+                <p><strong>Locus génico:</strong> La posición fija que ocupa un gen dentro de un cromosoma se llama <em>locus</em>. Los alelos son las formas alternativas de un gen y ocupan el mismo locus en cromosomas homólogos. La notación citogenética indica brazo (p corto, q largo), región y banda: ej. <strong>17q12</strong> = cromosoma 17, brazo largo, región 1, banda 2.</p>
+            </div>
+            <div class="bloque-info">
+                <p><strong>📐 Cuadro de Punnett:</strong> Herramienta creada por Reginald C. Punnett para predecir las proporciones genotípicas y fenotípicas de una cruza. En un cruce monohíbrido (Aa × Aa) la proporción fenotípica esperada en F2 es <strong>3:1</strong> (dominante:recesivo) y la genotípica <strong>1:2:1</strong> (AA:Aa:aa).</p>
+            </div>
+        </div>
+
+        <!-- TAB 4: Origen de la Vida -->
+        <div class="tab-panel" id="tab4">
+            <div class="bloque-info">
+                <p><strong>Teoría Quimiosintética (Oparin-Haldane):</strong> Propone que la vida surgió gradualmente en la Tierra primitiva a partir de moléculas orgánicas simples formadas en la atmósfera reductora (H₂, CH₄, NH₃, vapor de agua). La energía de rayos UV y tormentas eléctricas impulsó reacciones que produjeron aminoácidos y nucleótidos, que se acumularon en el océano primitivo formando el llamado "caldo primordial". El experimento de Miller-Urey (1953) demostró experimentalmente la síntesis abiótica de aminoácidos.</p>
+            </div>
+            <div class="bloque-info">
+                <p><strong>Panspermia:</strong> Hipótesis que plantea que la vida (o sus precursores moleculares) llegó a la Tierra desde el espacio, transportada en meteoritos o cometas. La <em>panspermia dirigida</em> (Crick & Orgel, 1973) va más allá y sugiere que fue enviada deliberadamente por una civilización extraterrestre. Evidencias de apoyo incluyen: bacterias resistentes a la radiación (<em>Deinococcus radiodurans</em>), meteoritos marcianos con posibles microfósiles (ALH84001) y detección de moléculas orgánicas en cometas.</p>
+            </div>
+            <div class="bloque-info">
+                <p><strong>🦴 Paleogenómica:</strong> Disciplina que extrae y analiza ADN de restos biológicos de miles o millones de años de antigüedad (ADN antiguo o aDNA). Ha permitido secuenciar el genoma completo del Neandertal y el Denisovano, revelando que los humanos modernos nos cruzamos con ambas especies. Nobelprize 2022 a Svante Pääbo. Los humanos no africanos llevamos aprox. <strong>1–4 % de ADN Neandertal</strong> en nuestro genoma.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOSARIO -->
+    <div class="seccion">
+        <h2>🧬 Glosario Técnico</h2>
+        <div class="glosario-grid">
+            <div class="termino">
+                <span class="termino-tag">Citogenética</span>
+                <b>Bandeo G:</b> Tinción con Giemsa que revela el patrón de bandas de los cromosomas en metafase, permitiendo su identificación y análisis.
+            </div>
+            <div class="termino">
+                <span class="termino-tag">Genética</span>
+                <b>Locus:</b> Posición exacta y fija que ocupa un gen dentro de la estructura de un cromosoma específico.
+            </div>
+            <div class="termino">
+                <span class="termino-tag">Biología Molecular</span>
+                <b>Splicing:</b> Mecanismo de "corte y empalme" del ARN pre-mensajero para eliminar los intrones y unir los exones antes de la traducción.
+            </div>
+            <div class="termino">
+                <span class="termino-tag">Evolución</span>
+                <b>Paleogenómica:</b> Análisis de ADN recuperado de restos orgánicos antiguos para reconstruir la historia evolutiva de las especies.
+            </div>
+            <div class="termino">
+                <span class="termino-tag">Biología Molecular</span>
+                <b>Exón:</b> Segmento del gen que se conserva en el ARNm maduro y contiene la información para sintetizar proteínas.
+            </div>
+            <div class="termino">
+                <span class="termino-tag">Biología Molecular</span>
+                <b>Intrón:</b> Secuencia no codificante intercalada entre exones que se elimina durante el procesamiento del ARN.
+            </div>
+            <div class="termino">
+                <span class="termino-tag">Citogenética</span>
+                <b>Aneuploidía:</b> Alteración en el número de cromosomas. Si hay un cromosoma extra se llama trisomía; si falta uno, monosomía.
+            </div>
+            <div class="termino">
+                <span class="termino-tag">Genómica</span>
+                <b>Medicina de Precisión:</b> Enfoque que adapta el tratamiento médico a las características genéticas individuales de cada paciente.
+            </div>
+        </div>
+    </div>
+
+    <!-- VIDEO -->
+    <div class="seccion">
+        <h2>🎥 Recurso Audiovisual</h2>
+        <p style="font-size:.9rem;color:var(--texto-suave);margin-bottom:1.2rem;">Video del <strong>INMEGEN</strong> sobre medicina genómica y el futuro de la salud en México. <em>Nota: algunos videos institucionales no permiten reproducción embebida; usa el botón para verlo directamente en YouTube.</em></p>
+        <div class="video-card">
+            <div class="play-icon" onclick="window.open('https://www.youtube.com/watch?v=axSh_Gl5GVo','_blank')">▶</div>
+            <h3>Medicina Genómica en México — INMEGEN</h3>
+            <p>Instituto Nacional de Medicina Genómica · Canal oficial</p>
+            <a href="https://www.youtube.com/watch?v=axSh_Gl5GVo" target="_blank" class="btn-yt">
+                ▶ &nbsp;Ver en YouTube
+            </a>
+            <div class="video-alt">
+                ¿Quieres explorar más? &nbsp;
+                <a href="https://www.youtube.com/@INMEGEN" target="_blank" style="color:rgba(255,255,255,0.6);font-size:.82rem;">Canal INMEGEN en YouTube →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVIDADES -->
+    <div class="seccion">
+        <h2>🛠️ Actividades de Aprendizaje</h2>
+        <div class="actividades-list">
+
+            <div class="actividad">
+                <div class="actividad-num">1</div>
+                <div class="actividad-body">
+                    <strong>Cuadro de Punnett — Herencia Monohíbrida</strong>
+                    <p>Desarrolla un cruce entre individuos heterocigotos (Aa × Aa) para un carácter de tu elección de los estudiados por Mendel. Incluye genotipo y fenotipo de F1 y F2, y calcula las proporciones esperadas.</p>
+                    <div class="sugerencias">
+                        <strong>💡 Caracteres disponibles (elige uno):</strong>
+                        <ul>
+                            <li><b>Color de la semilla:</b> Amarillo (dominante) vs Verde.</li>
+                            <li><b>Forma de la semilla:</b> Lisa (dominante) vs Rugosa.</li>
+                            <li><b>Color de la flor:</b> Púrpura (dominante) vs Blanca.</li>
+                            <li><b>Longitud del tallo:</b> Alto (dominante) vs Corto.</li>
+                            <li><b>Posición de la flor:</b> Axial (dominante) vs Apical.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actividad">
+                <div class="actividad-num">2</div>
+                <div class="actividad-body">
+                    <strong>Análisis de Cariotipos</strong>
+                    <p>Identifica visualmente (usando la representación del módulo o imágenes de referencia) las diferencias entre un cariotipo sano 46,XY y uno con Trisomía 21 (47,XX+21). Indica en qué par se observa la anomalía y qué técnica permite visualizarlo.</p>
+                </div>
+            </div>
+
+            <div class="actividad">
+                <div class="actividad-num">3</div>
+                <div class="actividad-body">
+                    <strong>Tabla Comparativa: Origen de la Vida</strong>
+                    <p>Elabora una tabla con al menos 4 criterios (premisas, evidencias, autores, limitaciones) comparando la <b>Teoría Quimiosintética (Oparin-Haldane)</b> y la <b>Panspermia</b>. Incluye tu postura personal argumentada.</p>
+                </div>
+            </div>
+
+            <div class="actividad">
+                <div class="actividad-num">4</div>
+                <div class="actividad-body">
+                    <strong>Ética Genómica: Programa "All of Us"</strong>
+                    <p>Investiga el programa <em>All of Us Research Program</em> (NIH, EE.UU.) que busca recabar datos genómicos de 1 millón de personas. Responde: ¿Qué beneficios ofrece? ¿Qué riesgos implica para la privacidad? ¿Deberías participar? Argumenta con base en principios bioéticos (autonomía, beneficencia, justicia).</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- EXAMEN -->
+    <div class="examen-area seccion" style="opacity:1;transform:none;">
+        <h2 style="font-family:'Lora',serif;">📝 Evaluación Final <span style="font-size:.75rem;font-weight:400;opacity:.6;">(Intento único)</span></h2>
+        <div class="datos-reg">
+            <div class="input-wrap">
+                <label>Nombre completo</label>
+                <input type="text" id="alumno_nom" placeholder="Escribe tu nombre">
+            </div>
+            <div class="input-wrap">
+                <label>Grupo</label>
+                <input type="text" id="alumno_gru" placeholder="Ej. 3°B">
+            </div>
+        </div>
+
+        <div class="progreso-examen" id="progreso">
+            <div class="prog-dot" id="pd1"></div>
+            <div class="prog-dot" id="pd2"></div>
+            <div class="prog-dot" id="pd3"></div>
+            <div class="prog-dot" id="pd4"></div>
+            <div class="prog-dot" id="pd5"></div>
+            <div class="prog-dot" id="pd6"></div>
+            <div class="prog-dot" id="pd7"></div>
+            <div class="prog-dot" id="pd8"></div>
+        </div>
+
+        <div id="examen">
+            <div class="pregunta-wrap">
+                <p><span class="pregunta-num">1.</span> ¿Cómo se llaman las partes del gen que se conservan para formar el ARN mensajero maduro?</p>
+                <label class="opcion"><input type="radio" name="r1" value="1" onchange="marcarProg(1)"><span class="opcion-inner"><span class="radio-circle"></span>Exones</span></label>
+                <label class="opcion"><input type="radio" name="r1" value="0" onchange="marcarProg(1)"><span class="opcion-inner"><span class="radio-circle"></span>Intrones</span></label>
+            </div>
+
+            <div class="pregunta-wrap">
+                <p><span class="pregunta-num">2.</span> La técnica de Bandeo Giemsa permite visualizar:</p>
+                <label class="opcion"><input type="radio" name="r2" value="0" onchange="marcarProg(2)"><span class="opcion-inner"><span class="radio-circle"></span>El movimiento celular durante la interfase</span></label>
+                <label class="opcion"><input type="radio" name="r2" value="1" onchange="marcarProg(2)"><span class="opcion-inner"><span class="radio-circle"></span>El patrón de bandas en los cromosomas en metafase</span></label>
+            </div>
+
+            <div class="pregunta-wrap">
+                <p><span class="pregunta-num">3.</span> ¿Quiénes establecieron de manera independiente que los genes están en los cromosomas?</p>
+                <label class="opcion"><input type="radio" name="r3" value="1" onchange="marcarProg(3)"><span class="opcion-inner"><span class="radio-circle"></span>Sutton y Boveri</span></label>
+                <label class="opcion"><input type="radio" name="r3" value="0" onchange="marcarProg(3)"><span class="opcion-inner"><span class="radio-circle"></span>Mendel y Darwin</span></label>
+            </div>
+
+            <div class="pregunta-wrap">
+                <p><span class="pregunta-num">4.</span> El estudio del ADN extraído de restos biológicos antiguos se conoce como:</p>
+                <label class="opcion"><input type="radio" name="r4" value="1" onchange="marcarProg(4)"><span class="opcion-inner"><span class="radio-circle"></span>Paleogenómica</span></label>
+                <label class="opcion"><input type="radio" name="r4" value="0" onchange="marcarProg(4)"><span class="opcion-inner"><span class="radio-circle"></span>Ingeniería bioquímica</span></label>
+            </div>
+
+            <div class="pregunta-wrap">
+                <p><span class="pregunta-num">5.</span> ¿Cuántas personas busca reunir el programa de investigación "All of Us"?</p>
+                <label class="opcion"><input type="radio" name="r5" value="1" onchange="marcarProg(5)"><span class="opcion-inner"><span class="radio-circle"></span>Un millón de personas</span></label>
+                <label class="opcion"><input type="radio" name="r5" value="0" onchange="marcarProg(5)"><span class="opcion-inner"><span class="radio-circle"></span>Cien científicos especializados</span></label>
+            </div>
+
+            <div class="pregunta-wrap">
+                <p><span class="pregunta-num">6.</span> Proceso que permite obtener distintas proteínas a partir de un solo gen según el tejido:</p>
+                <label class="opcion"><input type="radio" name="r6" value="1" onchange="marcarProg(6)"><span class="opcion-inner"><span class="radio-circle"></span>Splicing alternativo</span></label>
+                <label class="opcion"><input type="radio" name="r6" value="0" onchange="marcarProg(6)"><span class="opcion-inner"><span class="radio-circle"></span>Fotosíntesis oxigénica</span></label>
+            </div>
+
+            <div class="pregunta-wrap">
+                <p><span class="pregunta-num">7.</span> En un cruce Aa × Aa (monohíbrido), la proporción fenotípica esperada en F2 es:</p>
+                <label class="opcion"><input type="radio" name="r7" value="1" onchange="marcarProg(7)"><span class="opcion-inner"><span class="radio-circle"></span>3 dominantes : 1 recesivo</span></label>
+                <label class="opcion"><input type="radio" name="r7" value="0" onchange="marcarProg(7)"><span class="opcion-inner"><span class="radio-circle"></span>1 dominante : 1 recesivo</span></label>
+            </div>
+
+            <div class="pregunta-wrap">
+                <p><span class="pregunta-num">8.</span> La teoría que propone que la vida surgió de moléculas orgánicas en la atmósfera primitiva de la Tierra es:</p>
+                <label class="opcion"><input type="radio" name="r8" value="1" onchange="marcarProg(8)"><span class="opcion-inner"><span class="radio-circle"></span>Teoría Quimiosintética (Oparin-Haldane)</span></label>
+                <label class="opcion"><input type="radio" name="r8" value="0" onchange="marcarProg(8)"><span class="opcion-inner"><span class="radio-circle"></span>Panspermia Dirigida (Crick-Orgel)</span></label>
+            </div>
+
+            <button class="btn-submit" onclick="finalizar()">✓ &nbsp;FINALIZAR Y REGISTRAR RESULTADO</button>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    © 2026 Academia de Biología · CETIS 43 · Enrique T. &nbsp;|&nbsp; Diseñado para aprendizaje activo
+</footer>
+
+<script>
+    // ── Scroll reveal ──
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.seccion').forEach(s => observer.observe(s));
+
+    // ── Tabs ──
+    function cambiarTab(btn, id) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+        btn.classList.add('activo');
+        document.getElementById(id).classList.add('activo');
+    }
+
+    // ── Progreso examen ──
+    function marcarProg(n) {
+        document.getElementById('pd'+n).classList.add('resp');
+    }
+
+    // ── Cariotipo ──
+    const cromInfo = {
+        1:'Par 1 — El más grande. Contiene ~2 000 genes.',
+        2:'Par 2 — Evidencia de fusión cromosómica en la evolución humana.',
+        3:'Par 3 — Incluye el gen VHL asociado a cáncer renal.',
+        4:'Par 4 — Contiene el gen de la Huntingtina (Huntington).',
+        5:'Par 5 — Deleción causa el Síndrome del Maullido de Gato.',
+        6:'Par 6 — Incluye el complejo HLA (histocompatibilidad).',
+        7:'Par 7 — Mutaciones en CFTR causan Fibrosis Quística.',
+        8:'Par 8 — Asociado a translocaciones en leucemia.',
+        9:'Par 9 — Contiene el gen ABO de los grupos sanguíneos.',
+        10:'Par 10 — Incluye genes del desarrollo neurológico.',
+        11:'Par 11 — Contiene el gen de la hemoglobina (beta-globina).',
+        12:'Par 12 — Asociado a PKU (fenilcetonuria).',
+        13:'Par 13 — Trisomía 13 = Síndrome de Patau.',
+        14:'Par 14 — Translocaciones frecuentes con el par 21.',
+        15:'Par 15 — Imprinting genético: síndromes de Prader-Willi y Angelman.',
+        16:'Par 16 — Trisomía 16: la aneuploidía más frecuente en abortos.',
+        17:'Par 17 — BRCA1 y TP53 (supresores tumorales).',
+        18:'Par 18 — Trisomía 18 = Síndrome de Edwards.',
+        19:'Par 19 — Alta densidad génica. APOE y riesgo de Alzheimer.',
+        20:'Par 20 — Investigado en estudios de longevidad.',
+        21:'Par 21 ⚠ — TRISOMÍA 21 = Síndrome de Down (47 cromosomas).',
+        22:'Par 22 — Más pequeño, frecuente en leucemia mieloide crónica.',
+        23:'Par 23 (X/Y) — Cromosomas sexuales. XX = mujer, XY = hombre.'
+    };
+    const alturas = [80,75,72,68,65,62,60,57,54,52,50,48,42,40,38,36,35,30,28,26,22,20,32];
+    const kw = document.getElementById('karyoWrap');
+    for(let i=1;i<=23;i++){
+        const par = document.createElement('div');
+        par.className='par-crom';
+        const es21 = (i===21);
+        const numCroms = es21 ? 3 : 2;
+        for(let c=0;c<numCroms;c++){
+            const cr = document.createElement('div');
+            cr.className='crom'+(es21?' anomalia':'');
+            cr.style.height = alturas[i-1]+'px';
+            par.appendChild(cr);
+        }
+        const num = document.createElement('div');
+        num.className='par-num';
+        num.textContent=i===23?'XY':i;
+        par.appendChild(num);
+        par.addEventListener('click',()=>{
+            document.getElementById('karyoMsg').textContent = cromInfo[i];
+        });
+        kw.appendChild(par);
+    }
+
+    // ── Examen ──
+    function finalizar() {
+        const n = document.getElementById('alumno_nom').value.trim();
+        const g = document.getElementById('alumno_gru').value.trim();
+        if(!n || !g){ alert('Por favor ingresa tu nombre y grupo antes de enviar.'); return; }
+
+        let aciertos = 0;
+        const total = 8;
+        let sinResp = [];
+        for(let i=1;i<=total;i++){
+            const opts = document.getElementsByName('r'+i);
+            let respondido = false;
+            for(let o of opts){
+                if(o.checked){ respondido=true; if(o.value=='1') aciertos++; }
+            }
+            if(!respondido) sinResp.push(i);
+        }
+        if(sinResp.length > 0){
+            alert('Faltan por responder las preguntas: '+sinResp.join(', '));
+            return;
+        }
+
+        const nota = ((aciertos/total)*10).toFixed(1);
+        const pct  = (aciertos/total)*100;
+        const emoji = nota>=9?'🏆':nota>=7?'✅':nota>=6?'⚠️':'📚';
+        const msg   = nota>=9?'¡Excelente dominio del tema!':nota>=7?'Buen trabajo. Repasa los conceptos fallados.':nota>=6?'Aprobado. Te recomendamos reforzar los temas.':'Sigue estudiando. ¡Puedes mejorar!';
+        const color = nota>=7?'#52b788':nota>=6?'#e9a84c':'#e57373';
+
+        document.querySelector('.examen-area').innerHTML = `
+            <div class="resultado">
+                <p style="color:rgba(255,255,255,0.5);font-size:.85rem;letter-spacing:1px;text-transform:uppercase;">Resultado registrado</p>
+                <div style="font-size:1.1rem;margin:.6rem 0;color:#f0ebe0;">${n} &nbsp;·&nbsp; Grupo ${g}</div>
+                <div class="nota-grande" style="color:${color}">${nota}</div>
+                <div style="color:rgba(255,255,255,0.5);font-size:.9rem;">de 10 puntos &nbsp;·&nbsp; ${aciertos}/${total} respuestas correctas</div>
+                <div class="nota-barra"><div class="nota-fill" id="nf" style="width:0%"></div></div>
+                <div style="font-size:1.8rem;margin:.8rem 0;">${emoji}</div>
+                <p style="color:rgba(255,255,255,0.75);font-size:.95rem;">${msg}</p>
+                <p style="color:rgba(255,255,255,0.35);font-size:.78rem;margin-top:1.5rem;">© 2026 Academia de Biología · CETIS 43</p>
+            </div>
+        `;
+        setTimeout(()=>{
+            const fill = document.getElementById('nf');
+            if(fill) fill.style.width = pct+'%';
+        }, 100);
+    }
+</script>
+</body>
+</html>
