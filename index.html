@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Biología · CETIS 43 | Simuladores Interactivos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* ===== ESTILOS BASE (MEJORADOS) ===== */
+        :root {
+            --verde-oscuro:  #1a3d2b;
+            --verde-medio:   #2d6a4f;
+            --verde-claro:   #52b788;
+            --ambar:         #e9a84c;
+            --ambar-claro:   #fef3c7;
+            --crema:         #fdf8f0;
+            --crema-oscura:  #f0e8d8;
+            --tierra:        #7c4d2b;
+            --texto:         #2c2416;
+            --texto-suave:   #5c4d3a;
+            --blanco:        #ffffff;
+            --sombra:        rgba(44,36,22,0.12);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background-color: var(--crema);
+            color: var(--texto);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--verde-oscuro) 0%, #0d2818 60%, #1f4428 100%);
+            color: white;
+            padding: 4rem 1.5rem 3.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(82,183,136,0.18) 0%, transparent 55%),
+                        radial-gradient(ellipse at 80% 20%, rgba(233,168,76,0.12) 0%, transparent 45%);
+        }
+        header::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--verde-claro), var(--ambar), var(--verde-claro));
+        }
+        .header-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 5px 18px;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+        header h1 {
+            font-family: 'Lora', serif;
+            font-size: clamp(1.9rem, 5vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+            position: relative;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+        .header-sub {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.95rem;
+            position: relative;
+        }
+        .dna-icon {
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            display: block;
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2.5rem 1.2rem;
+        }
+
+        .seccion {
+            background: var(--blanco);
+            border-radius: 14px;
+            padding: 2.2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 20px var(--sombra);
+            border: 1px solid rgba(44,36,22,0.07);
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity .6s ease, transform .6s ease;
+        }
+        .seccion.visible { opacity: 1; transform: translateY(0); }
+
+        .seccion h2 {
+            font-family: 'Lora', serif;
+            color: var(--verde-oscuro);
+            font-size: 1.35rem;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 2px solid var(--crema-oscura);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        .tab-btn {
+            padding: 8px 18px;
+            border: 2px solid var(--crema-oscura);
+            border-radius: 20px;
+            background: transparent;
+            cursor: pointer;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--texto-suave);
+            transition: all .25s;
+        }
+        .tab-btn.activo, .tab-btn:hover {
+            background: var(--verde-oscuro);
+            border-color: var(--verde-oscuro);
+            color: white;
+        }
+        .tab-panel { display: none; animation: fadeIn .35s ease; }
+        .tab-panel.activo { display: block; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+        /* Objetivos */
+        .objetivo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .objetivo-card {
+            background: var(--crema);
+            border-radius: 10px;
+            padding: 1.2rem 1.4rem;
+            border-left: 4px solid var(--verde-claro);
+            font-size: 0.93rem;
+        }
+        .objetivo-card strong { color: var(--verde-oscuro); display: block; margin-bottom: 4px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Glosario */
+        .glosario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .termino {
+            background: var(--crema);
+            padding: 1.1rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            border: 1px solid var(--crema-oscura);
+            transition: transform .2s, box-shadow .2s;
+            cursor: default;
+        }
+        .termino:hover { transform: translateY(-3px); box-shadow: 0 6px 18px var(--sombra); }
+        .termino b { color: var(--verde-oscuro); display: block; margin-bottom: 6px; font-size: 0.92rem; }
+        .termino-tag {
+            display: inline-block;
+            background: var(--ambar-claro);
+            color: var(--tierra);
+            font-size: 0.7rem;
+            border-radius: 8px;
+            padding: 1px 7px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        /* Bloques de lectura */
+        .bloque-info {
+            background: var(--crema);
+            border-left: 5px solid var(--verde-medio);
+            border-radius: 0 10px 10px 0;
+            padding: 1.4rem 1.6rem;
+            margin-bottom: 1.2rem;
+        }
+        .bloque-info p { margin-bottom: 0.7rem; font-size: 0.95rem; }
+        .bloque-info strong { color: var(--verde-oscuro); }
+        .proceso-dna {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin: 1.2rem 0;
+            flex-wrap: wrap;
+        }
+        .etapa {
+            background: var(--verde-oscuro);
+            color: white;
+            padding: 0.6rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 6px;
+            text-align: center;
+            min-width: 100px;
+        }
+        .flecha { color: var(--ambar); font-size: 1.4rem; padding: 0 8px; font-weight: bold; }
+        .etapa.exon { background: var(--verde-medio); }
+        .etapa.intron { background: var(--tierra); }
+        .etapa.mrna { background: var(--ambar); color: var(--verde-oscuro); }
+        .etapa.prot { background: var(--verde-oscuro); }
+
+        .enlace-ext {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--verde-medio);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1.5px solid var(--verde-claro);
+            margin: 3px;
+            transition: all .2s;
+        }
+        .enlace-ext:hover { background: var(--verde-oscuro); color: white; border-color: var(--verde-oscuro); }
+
+        /* Video */
+        .video-card {
+            background: linear-gradient(135deg, var(--verde-oscuro), #0d2818);
+            border-radius: 14px;
+            padding: 2.5rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .video-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 60% 40%, rgba(82,183,136,0.15), transparent 60%);
+        }
+        .play-icon {
+            width: 72px; height: 72px;
+            background: var(--ambar);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: transform .25s, box-shadow .25s;
+            position: relative;
+        }
+        .play-icon:hover { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(233,168,76,0.2); }
+        .video-card h3 { font-family: 'Lora', serif; font-size: 1.2rem; margin-bottom: 0.5rem; position: relative; }
+        .video-card p { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 1.5rem; position: relative; }
+        .btn-yt {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ff0000;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            position: relative;
+            transition: background .2s, transform .2s;
+        }
+        .btn-yt:hover { background: #cc0000; transform: translateY(-2px); }
+
+        /* Actividades */
+        .actividades-list { display: grid; gap: 1rem; }
+        .actividad {
+            border: 1.5px solid var(--crema-oscura);
+            border-radius: 10px;
+            padding: 1.3rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            transition: border-color .2s, box-shadow .2s;
+            cursor: pointer;
+        }
+        .actividad:hover { border-color: var(--verde-claro); box-shadow: 0 4px 14px var(--sombra); }
+        .actividad-num {
+            background: var(--verde-oscuro);
+            color: white;
+            border-radius: 8px;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .actividad-body strong { color: var(--verde-oscuro); font-size: 0.97rem; display: block; margin-bottom: 3px; }
+        .actividad-body p { font-size: 0.88rem; color: var(--texto-suave); }
+        .sugerencias {
+            background: var(--ambar-claro);
+            border: 1px solid #f6d78a;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            margin-top: 0.8rem;
+            font-size: 0.88rem;
+        }
+        .sugerencias strong { color: var(--tierra); }
+        .sugerencias ul { margin: 0.4rem 0 0 1.2rem; }
+        .sugerencias li { margin-bottom: 3px; }
+
+        /* Examen */
+        .examen-area {
+            background: linear-gradient(160deg, #1a2d1e 0%, #0d1f13 100%);
+            color: #f0ebe0;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        .examen-area h2 { color: var(--ambar); border-bottom-color: rgba(255,255,255,0.1); }
+        .datos-reg {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        @media(max-width: 560px){ .datos-reg { grid-template-columns: 1fr; } }
+        .input-wrap label { display: block; font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 5px; letter-spacing: 1px; text-transform: uppercase; }
+        input[type="text"] {
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            width: 100%;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.97rem;
+            transition: border-color .2s;
+        }
+        input[type="text"]:focus { outline: none; border-color: var(--verde-claro); }
+        .progreso-examen {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1.8rem;
+            flex-wrap: wrap;
+        }
+        .prog-dot {
+            width: 28px; height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.12);
+            transition: background .3s;
+        }
+        .prog-dot.resp { background: var(--verde-claro); }
+
+        .pregunta-wrap {
+            margin-bottom: 1.8rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .pregunta-wrap p {
+            font-family: 'Lora', serif;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            color: #f5f0e8;
+        }
+        .pregunta-num { color: var(--ambar); font-weight: 700; }
+        .opcion {
+            display: block;
+            margin: 6px 0;
+            cursor: pointer;
+        }
+        .opcion-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(255,255,255,0.1);
+            font-size: 0.93rem;
+            transition: all .2s;
+        }
+        .opcion input { display: none; }
+        .opcion-inner:hover { background: rgba(82,183,136,0.12); border-color: rgba(82,183,136,0.4); }
+        .opcion input:checked + .opcion-inner {
+            background: rgba(82,183,136,0.18);
+            border-color: var(--verde-claro);
+            color: #a7f3d0;
+        }
+        .radio-circle {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .2s;
+        }
+        .opcion input:checked + .opcion-inner .radio-circle {
+            border-color: var(--verde-claro);
+            background: var(--verde-claro);
+        }
+        .radio-circle::after {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: white;
+            display: none;
+        }
+        .opcion input:checked + .opcion-inner .radio-circle::after { display: block; }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--verde-medio), var(--verde-claro));
+            color: white;
+            border: none;
+            padding: 1.1rem;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Source Sans 3', sans-serif;
+            margin-top: 0.5rem;
+            transition: opacity .2s, transform .2s;
+            letter-spacing: 0.5px;
+        }
+        .btn-submit:hover { opacity: 0.92; transform: translateY(-2px); }
+        .btn-submit:active { transform: scale(0.98); }
+
+        /* Resultado */
+        .resultado {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            animation: fadeIn .5s ease;
+        }
+        .nota-grande {
+            font-family: 'Lora', serif;
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin: 1rem 0;
+        }
+        .nota-barra {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            margin: 1rem auto;
+            max-width: 280px;
+            overflow: hidden;
+        }
+        .nota-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--verde-claro), var(--ambar));
+            transition: width 1s ease;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--texto-suave);
+            font-size: 0.83rem;
+            border-top: 1px solid var(--crema-oscura);
+        }
+
+        /* ──── SIMULADORES ──── */
+        .sim-card {
+            background: var(--crema);
+            border-radius: 18px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid var(--crema-oscura);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.04);
+        }
+        .sim-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 1.4rem;
+            border-bottom: 1px dashed var(--verde-claro);
+            padding-bottom: 0.8rem;
+        }
+        .sim-icon {
+            background: var(--verde-oscuro);
+            color: white;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+        .sim-title {
+            font-family: 'Lora', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--verde-oscuro);
+        }
+        .sim-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem 1.8rem;
+            margin: 1.8rem 0 1.2rem;
+            align-items: flex-end;
+        }
+        .sim-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .sim-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--texto-suave);
+        }
+        .sim-select, .sim-input {
+            padding: 0.7rem 1.2rem;
+            background: var(--blanco);
+            border: 2px solid var(--crema-oscura);
+            border-radius: 40px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            min-width: 180px;
+            transition: border 0.2s;
+        }
+        .btn-sim {
+            background: var(--verde-medio);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-sim-outline {
+            background: transparent;
+            color: var(--verde-oscuro);
+            border: 2px solid var(--verde-claro);
+            box-shadow: none;
+        }
+        .btn-sim-outline:hover {
+            background: var(--verde-claro);
+            color: white;
+        }
+        .sim-result {
+            margin-top: 1.8rem;
+            padding: 1.8rem;
+            background: rgba(82, 183, 136, 0.08);
+            border-radius: 18px;
+            border-left: 8px solid var(--verde-claro);
+            backdrop-filter: blur(4px);
+        }
+        .punnett-grid {
+            display: inline-grid;
+            grid-template-columns: 70px 70px 70px;
+            gap: 6px;
+            margin: 1.2rem 0;
+        }
+        .punnett-cell {
+            background: white;
+            border: 2px solid var(--crema-oscura);
+            border-radius: 12px;
+            padding: 10px 4px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .karyo-sim {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 10px;
+            margin: 1.8rem 0;
+            justify-content: center;
+        }
+        .crom-sim {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .crom-sim:hover { transform: scale(1.05); }
+        .crom-bar {
+            width: 14px;
+            background: var(--verde-medio);
+            border-radius: 8px;
+            margin-bottom: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .crom-sim.anomalia .crom-bar { background: #e53e3e; }
+        .actividad-link {
+            color: var(--verde-medio);
+            font-weight: 700;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+        .debate-instrucciones {
+            background: var(--blanco);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-top: 0.8rem;
+            border: 1px dashed var(--verde-claro);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <span class="dna-icon">🧬</span>
+    <div class="header-badge">DGETI · CETIS 43 · Enrique T.</div>
+    <h1>Genómica y Evolución</h1>
+    <p class="header-sub">Módulo de Biología Molecular · Ciclo 2025–2026</p>
+</header>
+
+<div class="container">
+
+    <!-- OBJETIVOS -->
+    <div class="seccion">
+        <h2>📍 Objetivos de la Progresión</h2>
+        <p style="font-size:.93rem;color:var(--texto-suave);margin-bottom:1.2rem;">
+            <strong>Propósito general:</strong> Comprender la organización del material genético y su transmisión hereditaria.
+        </p>
+        <div class="objetivo-grid">
+            <div class="objetivo-card"><strong>Objetivo 1 · Estructura Génica</strong> Intrones, exones y splicing alternativo.</div>
+            <div class="objetivo-card"><strong>Objetivo 2 · Citogenética</strong> Cariotipos, bandeo G y trisomías.</div>
+            <div class="objetivo-card"><strong>Objetivo 3 · Herencia Mendeliana</strong> Cuadros de Punnett y teoría cromosómica.</div>
+            <div class="objetivo-card"><strong>Objetivo 4 · Genómica y Ética</strong> Medicina de precisión y paleogenómica.</div>
+        </div>
+    </div>
+
+    <!-- TABS (5 PESTAÑAS) -->
+    <div class="seccion">
+        <h2>📚 Desarrollo de la Progresión</h2>
+        <div class="tabs">
+            <button class="tab-btn activo" onclick="cambiarTab(this,'tab1')">Intrones y Exones</button>
+            <button class="tab-btn" onclick="cambiarTab(this,'tab2')">Cariotipo y Bandeo G</button>
+            <button class="tab-btn" onclick="cambiarTab(this,'tab3')">Teoría Cromosómica</button>
+            <button class="tab-btn" onclick="cambiarTab(this,'tab4')">Origen de la Vida</button>
+            <button class="tab-btn" onclick="cambiarTab(this,'tab5')">🧪 Simuladores</button>
+        </div>
+
+        <!-- TAB 1 -->
+        <div class="tab-panel activo" id="tab1">
+            <div class="bloque-info"><p>Los genes eucariotas están fragmentados en <strong>exones</strong> (codificantes) e <strong>intrones</strong> (no codificantes). El splicing elimina intrones y une exones.</p></div>
+            <div class="proceso-dna">
+                <div class="etapa">ADN</div><span class="flecha">→</span><div class="etapa exon">Exón1</div><div class="etapa intron">Intrón</div><div class="etapa exon">Exón2</div>
+                <span class="flecha">→ Splicing →</span><div class="etapa mrna">ARNm</div><span class="flecha">→</span><div class="etapa prot">Proteína</div>
+            </div>
+            <div class="bloque-info"><p><strong>Splicing alternativo:</strong> un gen → múltiples proteínas. >95% de genes humanos lo presentan.</p></div>
+            <a href="https://www.genome.gov/es/genetics-glossary/Exon" target="_blank" class="enlace-ext">🔗 Exón (NHGRI)</a>
+            <a href="https://www.genome.gov/es/genetics-glossary/Intron" target="_blank" class="enlace-ext">🔗 Intrón (NHGRI)</a>
+        </div>
+
+        <!-- TAB 2: CARIOTIPO (CORREGIDO) -->
+        <div class="tab-panel" id="tab2">
+            <div class="bloque-info"><p><strong>Cariotipo humano:</strong> 46 cromosomas (23 pares). <strong>Bandeo G:</strong> patrón de bandas claro/oscuro.</p></div>
+            <div id="karyoWrap" class="karyo-wrap"></div>
+            <div class="karyo-legend"><span><span class="legend-dot" style="background:var(--verde-medio)"></span>Normal</span><span><span class="legend-dot" style="background:#e53e3e"></span>Trisomía 21</span></div>
+            <p id="karyoMsg" style="font-size:.85rem;margin-top:.8rem;"></p>
+            <div class="bloque-info"><p><strong>Trisomía 21 (Síndrome de Down):</strong> tres copias del cromosoma 21.</p></div>
+        </div>
+
+        <!-- TAB 3 -->
+        <div class="tab-panel" id="tab3">
+            <div class="bloque-info"><p>Sutton y Boveri: los genes están en los cromosomas. Morgan demostró ligamiento y entrecruzamiento.</p></div>
+            <div class="bloque-info"><p><strong>Cuadro de Punnett:</strong> predice proporciones genotípicas/fenotípicas.</p></div>
+        </div>
+
+        <!-- TAB 4 -->
+        <div class="tab-panel" id="tab4">
+            <div class="bloque-info"><p><strong>Teoría Quimiosintética (Oparin-Haldane):</strong> vida surgió de compuestos orgánicos en atmósfera reductora. Experimento Miller-Urey.</p></div>
+            <div class="bloque-info"><p><strong>Panspermia:</strong> la vida o precursores llegaron del espacio.</p></div>
+            <div class="bloque-info"><p><strong>Paleogenómica:</strong> ADN antiguo revela hibridación con neandertales.</p></div>
+        </div>
+
+        <!-- TAB 5: SIMULADORES -->
+        <div class="tab-panel" id="tab5">
+            <div class="sim-card">
+                <div class="sim-header">
+                    <div class="sim-icon">🧬</div>
+                    <div class="sim-title">Simulador 1 · Cuadro de Punnett (Ejemplo para libreta)</div>
+                </div>
+                <p>Observa el ejemplo resuelto para <strong>Color de la flor (Púrpura dominante)</strong> con cruce Aa × Aa. Luego genera un cuadro vacío para practicar.</p>
+                <div class="sim-controls">
+                    <button class="btn-sim" onclick="mostrarEjemploPunnett()">🌸 Ver ejemplo (Aa × Aa)</button>
+                    <button class="btn-sim btn-sim-outline" onclick="mostrarCuadroVacio()">📋 Generar cuadro vacío</button>
+                </div>
+                <div id="punnettResult" class="sim-result">
+                    <div id="punnettDisplay">⏳ Presiona "Ver ejemplo" para observar un cuadro resuelto.</div>
+                </div>
+                <div class="sugerencias">
+                    <strong>📝 Actividad:</strong> Copia el ejemplo en tu cuaderno. Luego practica con otros caracteres:<br>
+                    <ul>
+                        <li><strong>Forma de la vaina:</strong> Inflada (dominante) vs Constreñida.</li>
+                        <li><strong>Color de la vaina:</strong> Verde (dominante) vs Amarillo.</li>
+                        <li><strong>Color de la flor:</strong> Púrpura vs Blanca.</li>
+                        <li><strong>Longitud del tallo:</strong> Alto vs Corto.</li>
+                        <li><strong>Posición de la flor:</strong> Axial vs Apical.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sim-card">
+                <div class="sim-header">
+                    <div class="sim-icon">🔬</div>
+                    <div class="sim-title">Simulador 2 · Explorador de Cariotipo y Trisomía 21</div>
+                </div>
+                <p>Haz clic en cualquier par para ver información. Alterna entre cariotipo normal y trisomía 21.</p>
+                <div class="sim-controls">
+                    <button class="btn-sim" onclick="simularCariotipoNormal()">👤 Normal (46,XY)</button>
+                    <button class="btn-sim" onclick="simularTrisomia21()">⚠️ Trisomía 21 (47,XY+21)</button>
+                </div>
+                <div id="karyoSimContainer" class="karyo-sim"></div>
+                <p id="karyoSimInfo" style="margin-top:0.8rem; font-style:italic; background:var(--blanco); padding:0.5rem 1rem; border-radius:30px;"></p>
+                <div class="sugerencias">
+                    <strong>📝 Actividad:</strong> Compara ambos cariotipos. ¿Qué par está alterado? Investiga otros síndromes por aneuploidía.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOSARIO -->
+    <div class="seccion">
+        <h2>🧬 Glosario Técnico</h2>
+        <div class="glosario-grid" id="glosarioContainer"></div>
+    </div>
+
+    <!-- VIDEO -->
+    <div class="seccion">
+        <h2>🎥 Recurso Audiovisual</h2>
+        <div class="video-card">
+            <div class="play-icon" onclick="window.open('https://www.youtube.com/watch?v=axSh_Gl5GVo','_blank')">▶</div>
+            <h3>Medicina Genómica en México — INMEGEN</h3>
+            <a href="https://www.youtube.com/watch?v=axSh_Gl5GVo" target="_blank" class="btn-yt">▶ Ver en YouTube</a>
+        </div>
+    </div>
+
+    <!-- ACTIVIDADES -->
+    <div class="seccion">
+        <h2>🛠️ Actividades de Aprendizaje</h2>
+        <div class="actividades-list">
+            <div class="actividad"><div class="actividad-num">1</div><div class="actividad-body"><strong>Cuadro de Punnett</strong><p>Utiliza el simulador para completar el cuadro en tu cuaderno.</p></div></div>
+            <div class="actividad"><div class="actividad-num">2</div><div class="actividad-body"><strong>Análisis de Cariotipos</strong><p>Compara cariotipo normal vs trisomía 21.</p></div></div>
+            <div class="actividad">
+                <div class="actividad-num">3</div>
+                <div class="actividad-body">
+                    <strong>Tabla Comparativa: Origen de la Vida</strong>
+                    <p>Elabora una tabla con al menos 4 criterios (premisas, evidencias, autores, limitaciones) comparando <b>Teoría Quimiosintética</b> y <b>Panspermia</b>. Incluye tu postura argumentada.</p>
+                    <span style="display:block; margin-top:10px;">
+                        🌍 <a class="actividad-link" href="https://concepto.de/teoria-de-oparin/" target="_blank">Teoría de Oparin</a> &nbsp;|&nbsp; 
+                        📘 <a class="actividad-link" href="https://www.biografiasyvidas.com/biografia/o/oparin.htm" target="_blank">Oparin – Biografía</a><br>
+                        ☄️ <a class="actividad-link" href="https://es.wikipedia.org/wiki/Panspermia" target="_blank">Panspermia (Wikipedia)</a> &nbsp;|&nbsp; 
+                        🔭 <a class="actividad-link" href="https://www.nationalgeographic.com.es/ciencia/nasa-analiza-muestras-bennu-y-encuentra-molecula-felicidad_26895" target="_blank">NatGeo: Panspermia</a>
+                    </span>
+                </div>
+            </div>
+            <div class="actividad">
+                <div class="actividad-num">4</div>
+                <div class="actividad-body">
+                    <strong>Ética Genómica: "All of Us"</strong>
+                    <p>Investiga el programa <em>All of Us Research Program</em> (NIH). Responde: ¿Beneficios? ¿Riesgos de privacidad? ¿Participarías? Argumenta con principios bioéticos.</p>
+                    <div class="debate-instrucciones">
+                        <strong>🔗 Enlace oficial (verificado):</strong> <a href="https://medlineplus.gov/spanish/allofus.html" target="_blank" class="actividad-link">MedlinePlus en español: Programa All of Us</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXAMEN -->
+    <div class="examen-area seccion" style="opacity:1;transform:none;">
+        <h2>📝 Evaluación Final</h2>
+        <div class="datos-reg">
+            <div class="input-wrap"><label>Nombre completo</label><input type="text" id="alumno_nom" placeholder="Escribe tu nombre"></div>
+            <div class="input-wrap"><label>Grupo</label><input type="text" id="alumno_gru" placeholder="Ej. 3°B"></div>
+        </div>
+        <div class="progreso-examen" id="progreso"></div>
+        <div id="examen">
+            <!-- preguntas 1-8 (abreviadas) -->
+            <div class="pregunta-wrap"><p><span class="pregunta-num">1.</span> ¿Partes del gen que se conservan en ARNm?</p><label class="opcion"><input type="radio" name="r1" value="1" onchange="marcarProg(1)"><span class="opcion-inner"><span class="radio-circle"></span>Exones</span></label><label class="opcion"><input type="radio" name="r1" value="0" onchange="marcarProg(1)"><span class="opcion-inner"><span class="radio-circle"></span>Intrones</span></label></div>
+            <div class="pregunta-wrap"><p><span class="pregunta-num">2.</span> Bandeo G visualiza:</p><label class="opcion"><input type="radio" name="r2" value="1" onchange="marcarProg(2)"><span class="opcion-inner"><span class="radio-circle"></span>Patrón de bandas cromosómicas</span></label><label class="opcion"><input type="radio" name="r2" value="0" onchange="marcarProg(2)"><span class="opcion-inner"><span class="radio-circle"></span>Movimiento celular</span></label></div>
+            <div class="pregunta-wrap"><p><span class="pregunta-num">3.</span> ¿Quiénes propusieron que genes están en cromosomas?</p><label class="opcion"><input type="radio" name="r3" value="1" onchange="marcarProg(3)"><span class="opcion-inner"><span class="radio-circle"></span>Sutton y Boveri</span></label><label class="opcion"><input type="radio" name="r3" value="0" onchange="marcarProg(3)"><span class="opcion-inner"><span class="radio-circle"></span>Mendel y Darwin</span></label></div>
+            <div class="pregunta-wrap"><p><span class="pregunta-num">4.</span> Estudio de ADN antiguo:</p><label class="opcion"><input type="radio" name="r4" value="1" onchange="marcarProg(4)"><span class="opcion-inner"><span class="radio-circle"></span>Paleogenómica</span></label><label class="opcion"><input type="radio" name="r4" value="0" onchange="marcarProg(4)"><span class="opcion-inner"><span class="radio-circle"></span>Bioinformática</span></label></div>
+            <div class="pregunta-wrap"><p><span class="pregunta-num">5.</span> "All of Us" reclutará:</p><label class="opcion"><input type="radio" name="r5" value="1" onchange="marcarProg(5)"><span class="opcion-inner"><span class="radio-circle"></span>1 millón de personas</span></label><label class="opcion"><input type="radio" name="r5" value="0" onchange="marcarProg(5)"><span class="opcion-inner"><span class="radio-circle"></span>100 científicos</span></label></div>
+            <div class="pregunta-wrap"><p><span class="pregunta-num">6.</span> Splicing alternativo produce:</p><label class="opcion"><input type="radio" name="r6" value="1" onchange="marcarProg(6)"><span class="opcion-inner"><span class="radio-circle"></span>Varias proteínas de un gen</span></label><label class="opcion"><input type="radio" name="r6" value="0" onchange="marcarProg(6)"><span class="opcion-inner"><span class="radio-circle"></span>Una sola proteína</span></label></div>
+            <div class="pregunta-wrap"><p><span class="pregunta-num">7.</span> Proporción fenotípica Aa×Aa:</p><label class="opcion"><input type="radio" name="r7" value="1" onchange="marcarProg(7)"><span class="opcion-inner"><span class="radio-circle"></span>3:1</span></label><label class="opcion"><input type="radio" name="r7" value="0" onchange="marcarProg(7)"><span class="opcion-inner"><span class="radio-circle"></span>1:1</span></label></div>
+            <div class="pregunta-wrap"><p><span class="pregunta-num">8.</span> Teoría de Oparin-Haldane:</p><label class="opcion"><input type="radio" name="r8" value="1" onchange="marcarProg(8)"><span class="opcion-inner"><span class="radio-circle"></span>Síntesis prebiótica en Tierra primitiva</span></label><label class="opcion"><input type="radio" name="r8" value="0" onchange="marcarProg(8)"><span class="opcion-inner"><span class="radio-circle"></span>Panspermia dirigida</span></label></div>
+            <button class="btn-submit" onclick="finalizar()">✓ FINALIZAR Y REGISTRAR RESULTADO</button>
+        </div>
+    </div>
+</div>
+
+<footer>© 2026 Academia de Biología · CETIS 43 · Enrique T. | Simuladores interactivos</footer>
+
+<script>
+    (function() {
+        // ========== DATOS Y FUNCIONES ==========
+        const cromInfo = {
+            1:'Par 1 — El más grande.',2:'Par 2 — Fusión cromosómica.',3:'Par 3 — Gen VHL.',4:'Par 4 — Huntingtina.',
+            5:'Par 5 — Maullido de gato.',6:'Par 6 — Complejo HLA.',7:'Par 7 — CFTR.',8:'Par 8 — Translocaciones.',
+            9:'Par 9 — ABO.',10:'Par 10 — Desarrollo neurológico.',11:'Par 11 — Beta-globina.',12:'Par 12 — PKU.',
+            13:'Par 13 — Trisomía 13.',14:'Par 14 — Translocaciones con 21.',15:'Par 15 — Imprinting.',
+            16:'Par 16 — Trisomía 16.',17:'Par 17 — BRCA1, TP53.',18:'Par 18 — Trisomía 18.',19:'Par 19 — APOE.',
+            20:'Par 20 — Longevidad.',21:'Par 21 ⚠ — TRISOMÍA 21 (Síndrome de Down).',22:'Par 22 — LMC.',23:'Par 23 (X/Y) — Sexuales.'
+        };
+        const alturas = [80,75,72,68,65,62,60,57,54,52,50,48,42,40,38,36,35,30,28,26,22,20,32];
+
+        // Glosario
+        const terminos = [
+            {tag:'Citogenética', term:'Bandeo G', def:'Tinción Giemsa que revela patrón de bandas cromosómicas.'},
+            {tag:'Genética', term:'Locus', def:'Posición fija de un gen en el cromosoma.'},
+            {tag:'Biología Molecular', term:'Splicing', def:'Eliminación de intrones y unión de exones.'},
+            {tag:'Evolución', term:'Paleogenómica', def:'Estudio de ADN antiguo.'},
+            {tag:'Biología Molecular', term:'Exón', def:'Región codificante del gen.'},
+            {tag:'Biología Molecular', term:'Intrón', def:'Región no codificante eliminada en el splicing.'},
+            {tag:'Citogenética', term:'Aneuploidía', def:'Número anormal de cromosomas.'},
+            {tag:'Genómica', term:'Medicina de precisión', def:'Tratamiento personalizado según genética.'}
+        ];
+
+        // Rellenar glosario
+        const glosarioDiv = document.getElementById('glosarioContainer');
+        terminos.forEach(t => {
+            const div = document.createElement('div'); div.className = 'termino';
+            div.innerHTML = `<span class="termino-tag">${t.tag}</span><b>${t.term}</b>${t.def}`;
+            glosarioDiv.appendChild(div);
+        });
+
+        // Inicializar cariotipo pestaña 2
+        function initKaryoWrap() {
+            const kw = document.getElementById('karyoWrap');
+            if (!kw) return;
+            kw.innerHTML = '';
+            for (let i = 1; i <= 23; i++) {
+                const par = document.createElement('div'); par.className = 'par-crom';
+                const es21 = (i === 21); const numCroms = es21 ? 3 : 2;
+                for (let c = 0; c < numCroms; c++) {
+                    const cr = document.createElement('div'); cr.className = 'crom' + (es21 ? ' anomalia' : '');
+                    cr.style.height = alturas[i-1] + 'px'; par.appendChild(cr);
+                }
+                const num = document.createElement('div'); num.className = 'par-num'; num.textContent = i===23 ? 'XY' : i;
+                par.appendChild(num);
+                par.addEventListener('click', () => {
+                    document.getElementById('karyoMsg').textContent = cromInfo[i];
+                });
+                kw.appendChild(par);
+            }
+        }
+
+        // Simulador cariotipo
+        const karyoSimDiv = document.getElementById('karyoSimContainer');
+        const infoSim = document.getElementById('karyoSimInfo');
+        function renderKaryoSim(trisomia = false) {
+            let h = '';
+            for (let i = 1; i <= 23; i++) {
+                const es21 = (i === 21 && trisomia); const numC = es21 ? 3 : 2;
+                h += `<div class="crom-sim ${es21 ? 'anomalia' : ''}" onclick="alert('${cromInfo[i]}')">`;
+                for (let c = 0; c < numC; c++) h += `<div class="crom-bar" style="height:${alturas[i-1]}px;"></div>`;
+                h += `<span style="font-size:0.7rem;">${i===23 ? 'XY' : i}</span></div>`;
+            }
+            karyoSimDiv.innerHTML = h;
+            infoSim.textContent = trisomia ? '⚠️ Cariotipo con Trisomía 21 (47,XY+21). Observa tres cromosomas en el par 21.' : '👤 Cariotipo masculino normal (46,XY).';
+        }
+        window.simularCariotipoNormal = () => renderKaryoSim(false);
+        window.simularTrisomia21 = () => renderKaryoSim(true);
+
+        // Punnett
+        window.mostrarEjemploPunnett = function() {
+            let html = `<div style="font-weight:700; margin-bottom:10px;">🌸 Ejemplo: Color de la flor (Púrpura dominante) - Cruce Aa × Aa</div>`;
+            html += `<div class="punnett-grid">`;
+            html += `<div class="punnett-cell empty"></div><div class="punnett-cell" style="background:var(--crema-oscura);">A</div><div class="punnett-cell" style="background:var(--crema-oscura);">a</div>`;
+            html += `<div class="punnett-cell" style="background:var(--crema-oscura);">A</div><div class="punnett-cell">AA</div><div class="punnett-cell">Aa</div>`;
+            html += `<div class="punnett-cell" style="background:var(--crema-oscura);">a</div><div class="punnett-cell">Aa</div><div class="punnett-cell">aa</div>`;
+            html += `</div><p><strong>Genotipos:</strong> AA:1 (25%), Aa:2 (50%), aa:1 (25%)<br><strong>Fenotipos:</strong> Púrpura:3 (75%) | Blanca:1 (25%) → 3:1</p>`;
+            document.getElementById('punnettDisplay').innerHTML = html;
+        };
+        window.mostrarCuadroVacio = function() {
+            let html = `<div style="font-weight:700; margin-bottom:10px;">Cuadro vacío para completar (Aa × Aa)</div><div class="punnett-grid">`;
+            html += `<div class="punnett-cell empty"></div><div class="punnett-cell" style="background:var(--crema-oscura);">A</div><div class="punnett-cell" style="background:var(--crema-oscura);">a</div>`;
+            html += `<div class="punnett-cell" style="background:var(--crema-oscura);">A</div><div class="punnett-cell empty">( )</div><div class="punnett-cell empty">( )</div>`;
+            html += `<div class="punnett-cell" style="background:var(--crema-oscura);">a</div><div class="punnett-cell empty">( )</div><div class="punnett-cell empty">( )</div>`;
+            html += `</div><p><em>✏️ Completa las celdas y calcula proporciones.</em></p>`;
+            document.getElementById('punnettDisplay').innerHTML = html;
+        };
+
+        // Tabs
+        window.cambiarTab = function(btn, id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+            btn.classList.add('activo');
+            document.getElementById(id).classList.add('activo');
+            if (id === 'tab2') initKaryoWrap(); // refrescar por si acaso
+        };
+
+        // Examen
+        for (let i=1; i<=8; i++) { let d=document.createElement('div'); d.className='prog-dot'; d.id='pd'+i; document.getElementById('progreso').appendChild(d); }
+        window.marcarProg = n => document.getElementById('pd'+n).classList.add('resp');
+        window.finalizar = function() {
+            const n = document.getElementById('alumno_nom').value.trim(), g = document.getElementById('alumno_gru').value.trim();
+            if (!n || !g) { alert('Ingresa nombre y grupo.'); return; }
+            let aciertos = 0, sinResp = [];
+            for (let i=1; i<=8; i++) {
+                const opts = document.getElementsByName('r'+i); let respondido = false;
+                for (let o of opts) if (o.checked) { respondido = true; if (o.value=='1') aciertos++; }
+                if (!respondido) sinResp.push(i);
+            }
+            if (sinResp.length) { alert('Faltan preguntas: '+sinResp.join(', ')); return; }
+            const nota = ((aciertos/8)*10).toFixed(1), pct = (aciertos/8)*100;
+            document.querySelector('.examen-area').innerHTML = `<div class="resultado"><p>Resultado</p><div>${n} · ${g}</div><div class="nota-grande" style="color:${nota>=7?'#52b788':'#e9a84c'}">${nota}</div><div>${aciertos}/8</div><div class="nota-barra"><div class="nota-fill" style="width:${pct}%"></div></div></div>`;
+        };
+
+        // Inicialización
+        window.onload = function() {
+            initKaryoWrap();
+            renderKaryoSim(false);
+            window.mostrarEjemploPunnett();
+            // Observador scroll reveal
+            const observer = new IntersectionObserver(entries => { entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: 0.08 });
+            document.querySelectorAll('.seccion').forEach(s => observer.observe(s));
+        };
+    })();
+</script>
+</body>
+</html>
